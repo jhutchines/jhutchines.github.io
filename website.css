@@ -7,6 +7,9 @@ body {
 body img {
 	position: fixed;
 	z-index: -5;
+	margin: 0px;
+	padding: 0px;
+	min-height: 1000px;
 }
 
 .main-buttons {
