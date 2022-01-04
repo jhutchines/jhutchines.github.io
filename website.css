@@ -1,1 +1,51 @@
+body {
+	font-family: "Raleway","Helvetica Neue","Helvetica","Roboto","Arial",sans-serif;
+    z-index: -1;
+}
+body img {
+	position: fixed;
+	z-index: -5;
+}
 
+.main-buttons {
+	width: 200px;
+	margin-top: auto;
+    margin-right: auto;
+    margin-left: auto;
+    margin-bottom: auto;
+    background-color: #AAF0EE;
+    height: 320px;
+    border-radius: 10px;
+    text-align: center;
+    -webkit-box-shadow: 0px 0px 10px #368A98;
+    border: thin solid #316786;
+    box-shadow: 0px 0px 10px #368A98;
+}
+
+.main-buttons ul {
+	list-style: none;
+    display: block;
+    margin-top: auto;
+    margin-right: auto;
+    margin-left: -5px;
+    margin-bottom: auto;
+    float: left;
+}
+
+.main-buttons ul li{
+	margin-top: 20px;
+	margin-right: 0px;
+	margin-left: 0px;
+	margin-bottom: 20px;
+	padding-top: 20px;
+	padding-right: 20px;
+	padding-left: 20px;
+	padding-bottom: 20px;
+	border-radius: 5px;
+	border: thin solid #747474;
+	list-style: none;
+	text-align: center;
+	font-weight: bold;
+	-webkit-box-shadow: 2px 2px 5px #666666;
+	box-shadow: 2px 2px 5px #666666;
+}
