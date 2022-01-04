@@ -1,6 +1,8 @@
 body {
 	font-family: "Raleway","Helvetica Neue","Helvetica","Roboto","Arial",sans-serif;
     z-index: -1;
+	margin: 0px;
+	padding: 0px;
 }
 body img {
 	position: fixed;
@@ -9,17 +11,20 @@ body img {
 
 .main-buttons {
 	width: 200px;
-	margin-top: auto;
+	margin-top: -100px;
     margin-right: auto;
-    margin-left: auto;
+    margin-left: -100px;
     margin-bottom: auto;
     background-color: #AAF0EE;
-    height: 320px;
+    height: 200px;
     border-radius: 10px;
     text-align: center;
     -webkit-box-shadow: 0px 0px 10px #368A98;
     border: thin solid #316786;
     box-shadow: 0px 0px 10px #368A98;
+	left: 50%;
+	top: 50%;
+	position: absolute;
 }
 
 .main-buttons ul {
@@ -33,7 +38,7 @@ body img {
 }
 
 .main-buttons ul li{
-	margin-top: 20px;
+	margin-top: 25px;
 	margin-right: 0px;
 	margin-left: 0px;
 	margin-bottom: 20px;
