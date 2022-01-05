@@ -31,37 +31,11 @@ body img {
 	position: absolute;
 }
 
-.main-buttons ul {
-	list-style: none;
-    display: block;
+.main-buttons table {
+    display: table;
     margin-top: 20px;
     margin-right: auto;
     margin-left: auto;
     margin-bottom: auto;
-    float: left;
-}
-
-.scorelist li{
-	display: inline;
-	text-align: center;
-	padding-left: 20px;
-	padding-right: 20px;
-	box-shadow: none!important;
-	border: none!important;
-	width: 100px!important;
-}
-
-.main-buttons ul li{
-	margin-bottom: 50px;
-	padding-top: 20px;
-	border-radius: 5px;
-	border: thin solid #747474;
-	text-align: center;
-	font-weight: bold;
-	-webkit-box-shadow: 2px 2px 5px #666666;
-	box-shadow: 2px 2px 5px #666666;
-	width: 550px;
-	height: 100px;
-	font-size: 30px;
 }
 
