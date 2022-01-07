@@ -5,10 +5,10 @@
 		<link href="website.css" rel="stylesheet" type="text/css">
 	</head>
 	<body>
-		<img src="Images/wp3743278.jpg" alt=""/>
-		<div class="main-buttons">
+		<img src="Images/wp3743278.jpg" alt="" onClick="detailmenu('close')"/>
+		<div class="main-buttons" id="main-buttons">
 			<table>
-				<tr>
+				<tr onClick="detailmenu('bm')">
 					<td>
 					
 					</td>
@@ -22,7 +22,7 @@
 						0 Cups
 					</td>
 				</tr>
-				<tr>
+				<tr onClick="detailmenu('jh')">
 					<td>
 				
 					</td>
@@ -36,7 +36,7 @@
 						0 Cups
 					</td>
 				</tr>
-				<tr>
+				<tr onClick="detailmenu('rh')">
 					<td>
 					
 					</td>
@@ -52,5 +52,106 @@
 				</tr>
 			</table>
   		</div>
+		<div class="openmenu" id="openmenu">
+			<table id="menu">
+				<tbody>
+					<tr>
+						<th>
+							Date
+						</th>
+						<th>
+							Cups
+						</th>
+						<th>
+							Result
+						</th>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<script type="text/javascript" src="data.json"></script>
+		<script type="text/javascript">
+		var scoredata = data;
+		var scorecount = [[0, 0, 0], [0, 0, 0]];
+		for (var key in scoredata.values) {
+			if (scoredata.values.hasOwnProperty(key)) {
+				scorecount[0][0] += scoredata.values[key].bm;
+				scorecount[0][1] += scoredata.values[key].jh;
+				scorecount[0][2] += scoredata.values[key].rh;
+
+				var i = 0;
+				var x = Math.max(scoredata.values[key].bm, scoredata.values[key].jh, scoredata.values[key].rh);
+				var wins = 0;
+				for (var newkey in scoredata.values[key]) {
+					if (scoredata.values[key][newkey] === x) {
+						wins++;
+					}
+				}
+				if (wins === 1) {
+					for (var newkey in scoredata.values[key]) {
+						if (scoredata.values[key][newkey] === x) {
+							scorecount[1][i - 1]++;
+						}
+						i++;
+					}
+				}
+			}
+		}
+		document.getElementById("wins1").innerHTML = scorecount[1][0] + ' Wins';
+		document.getElementById("wins2").innerHTML = scorecount[1][1] + ' Wins';
+		document.getElementById("wins3").innerHTML = scorecount[1][2] + ' Wins';
+		document.getElementById("cups1").innerHTML = scorecount[0][0] + ' Cups';
+		document.getElementById("cups2").innerHTML = scorecount[0][1] + ' Cups';
+		document.getElementById("cups3").innerHTML = scorecount[0][2] + ' Cups';
+		//document.getElementById("total").innerHTML = scoredata.values.length;
+
+
+		function detailmenu(option) {
+
+			var table = document.getElementById("menu");
+			var rows = [];
+
+			if(option === "close") {
+				for (var row = 0; row < scoredata.values.length; row++) {
+					table.deleteRow(1);
+				}
+				document.getElementById("main-buttons").style.display = "block";
+				document.getElementById("openmenu").style.display = "none";
+			}
+			else {
+				document.getElementById("main-buttons").style.display = "none";
+				document.getElementById("openmenu").style.display = "block";
+				for (var key in scoredata.values) {
+					var newrow = table.insertRow(table.rows.length);
+					rows.push([]);
+					rows[key][0] = newrow.insertCell(0);
+					rows[key][1] = newrow.insertCell(1);
+					rows[key][2] = newrow.insertCell(2);
+				}
+
+				for (var i = 0; i < rows.length; i++) {
+					rows[i][0].innerHTML = scoredata.values[i].date;
+					rows[i][1].innerHTML = scoredata.values[i][option];
+					if (Math.max(scoredata.values[i].bm, scoredata.values[i].jh, scoredata.values[i].rh) === scoredata.values[i][option]) {
+						var wins = 0;
+						for (var newkey in scoredata.values[i]) {
+							if (scoredata.values[i][newkey] === scoredata.values[i][option]) {
+								wins++;
+							}
+						}
+						if (wins === 1) {
+							rows[i][2].innerHTML = "Won";
+						}
+						else {
+							rows[i][2].innerHTML = "Tied";
+						}
+					}
+					else {
+						rows[i][2].innerHTML = "Lost";
+					}
+				}
+			}
+		}
+		</script>
 	</body>
 </html>
