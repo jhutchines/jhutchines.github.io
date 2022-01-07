@@ -29,6 +29,38 @@ body img {
 	left: 50%;
 	top: 50%;
 	position: absolute;
+	display: block;
+}
+
+.openmenu {
+	width: 400px;
+	margin-top: -300px;
+	margin-right: auto;
+	margin-left: -200px;
+	margin-bottom: auto;
+	background-color: rgba(170,240,238,0.85);
+	height: 600px;
+	border-radius: 10px;
+	text-align: center;
+	-webkit-box-shadow: 0px 0px 10px #368A98;
+	border: thin solid #316786;
+	box-shadow: 0px 0px 10px #368A98;
+	left: 50%;
+	top: 50%;
+	position: absolute;
+	display: none;
+}
+
+#menu {
+	display: table;
+	margin-top: 15px;
+	margin-right: auto;
+	margin-left: auto;
+}
+
+#menu th, td {
+	
+	width: 150px;
 }
 
 .main-buttons table {
