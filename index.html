@@ -7,11 +7,11 @@
 	<body>
 		<img src="Images/wp3743278.jpg" alt="" onClick="detailmenu('close')"/>
 		<div class="main-buttons" id="main-buttons">
+			<p id="totalscore">
+				Total games: 
+			</p>
 			<table>
 				<tr onClick="detailmenu('bm')">
-					<td>
-					
-					</td>
 					<td style="padding: 15px 40px">
 						Brandon
 					</td>
@@ -23,9 +23,6 @@
 					</td>
 				</tr>
 				<tr onClick="detailmenu('jh')">
-					<td>
-				
-					</td>
 					<td style="padding: 15px 40px">
 						Jack
 					</td>
@@ -37,9 +34,6 @@
 					</td>
 				</tr>
 				<tr onClick="detailmenu('rh')">
-					<td>
-					
-					</td>
 					<td style="padding: 15px 40px">
 						Ross
 					</td>
@@ -103,7 +97,7 @@
 		document.getElementById("cups1").innerHTML = scorecount[0][0] + ' Cups';
 		document.getElementById("cups2").innerHTML = scorecount[0][1] + ' Cups';
 		document.getElementById("cups3").innerHTML = scorecount[0][2] + ' Cups';
-		//document.getElementById("total").innerHTML = scoredata.values.length;
+		document.getElementById("totalscore").innerHTML = "Total games: " + scoredata.values.length;
 
 
 		function detailmenu(option) {
