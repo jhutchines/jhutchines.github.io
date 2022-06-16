@@ -75,7 +75,10 @@
 	
 	// Shows back button if not kiosk mode and if screen size is wide enough
 	
-	if (window.location.href.indexOf("#kiosk") >= 0 || window.innerWidth < 620) {
+	if (window.location.href.indexOf("#kiosk") >= 0 && window.innerWidth >= 620) {
+		document.getElementById("backbtn").style.display = "block";
+	}
+	else {
 		document.getElementById("backbtn").style.display = "none";
 	}
 	
