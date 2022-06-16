@@ -1,151 +1,560 @@
-<!DOCTYPE html>
+<!DOCTYPE HTML>
 <html>
-	<head>
-		<title>Mario Kart 2022</title>
-		<link href="website.css" rel="stylesheet" type="text/css">
-	</head>
-	<body>
-		<img src="Images/wp3743278.jpg" alt="" onClick="detailmenu('close')"/>
-		<div class="main-buttons" id="main-buttons">
-			<p id="totalscore">
-				Total games: 
-			</p>
-			<table>
-				<tr onClick="detailmenu('bm')">
-					<td>
-						Brandon
-					</td>
-					<td id="wins1">
-						0 Wins
-					</td>
-					<td id="cups1">
-						0 Cups
-					</td>
-				</tr>
-				<tr onClick="detailmenu('jh')">
-					<td>
-						Jack
-					</td>
-					<td id="wins2">
-						0 Wins
-					</td>
-					<td id="cups2">
-						0 Cups
-					</td>
-				</tr>
-				<tr onClick="detailmenu('rh')">
-					<td>
-						Ross
-					</td>
-					<td id="wins3">
-						0 Wins
-					</td>
-					<td id="cups3">
-						0 Cups
-					</td>
-				</tr>
-			</table>
-  		</div>
-		<div class="openmenu" id="openmenu">
-			<table id="menu">
-				<tbody>
-					<tr>
-						<th>
-							Date
-						</th>
-						<th>
-							Cups
-						</th>
-						<th>
-							Result
-						</th>
-					</tr>
-				</tbody>
-			</table>
+<head>
+	<link href="stylesheet.css" rel="stylesheet" type="text/css">
+	<title id="title">UEL Interactive Map</title>
+</head>
+<body oncontextmenu="return false;">
+	<button id="focusButton" style="height: 0px;padding: 0px;margin: 0px;position: absolute; color: #d4d4d4;"></button>
+	<div id="dropdown" class="dropdown">
+		<div class="campus-dropdown">
+			<button class="campusbtn" onclick="this.focus()">Campus</button>
+			<div class="campus-content" id="campus-content">
+				<a onclick='changeCampus("Docklands", 0)'>Docklands</a>
+				<a onclick='changeCampus("Stratford", 0)'>Stratford</a>
+				<a onclick='changeCampus("USS", 0)'>USS</a>
+			</div>
 		</div>
-		<script type="text/javascript" src="data.json"></script>
-		<script type="text/javascript">
-		var scoredata = data;
-		var scorecount = [[0, 0, 0], [0, 0, 0]];
-		for (var key in scoredata.values) {
-			if (scoredata.values.hasOwnProperty(key)) {
-				scorecount[0][0] += scoredata.values[key].bm;
-				scorecount[0][1] += scoredata.values[key].jh;
-				scorecount[0][2] += scoredata.values[key].rh;
+		<div class="floor-dropdown">
+			<button class="floorbtn">Floor</button>
+			<div class="floor-content" id="floor-content">
+				<a onclick=changeFloor(0)>G</a>
+				<a onclick=changeFloor(1)>1</a>
+				<a onclick=changeFloor(2)>2</a>
+				<a onclick=changeFloor(3)>3</a>
+				<a onclick=changeFloor(4)>4</a>
+				<a id="5th" onclick=changeFloor(5) style="display:none">5</a>
+			</div>
+		</div>
+		<div class="room-dropdown">
+			<input type="text" id="roomFinder" placeholder="Search...">
+			<div id="room-content" class="room-content">
+			</div>
+		</div>
+		<div id="selected-campus" class="selected-campus">DOCKLANDS - FLOOR 0</div>
+		<button class="backbtn" id="backbtn" onclick="history.back()">Back</button>
+		<p id="pointFinder"></p>
+	</div>
+	<div id="mapHolder" class="mapHolder" ontouchstart='MapClicked()'>
+		<img class="mapImage" id="mapImage" src=""/>
+		<div id="roomHolder" class="roomHolder">
+			<div id="roomObject" class="roomObject">
+				AVA.G.01
+			</div>
+			<img class="placePointer" id="placePointer" src="Finished/Location Icon.png"/>
+		</div>
+	</div>
+</body>
+<script type="text/javascript" src="rooms.json"></script>
+<script type="text/javascript">
+	var roomData = data, // json data with lists of rooms and positions
+	scale = 1, // zooming scale
+	scaleMin = 1, // minimum zoom
+	scaleMax = 10, // maximum zoom
+	panning = false, // left mouse button held down
+	pointX = 0, // horizontal map position on mouse move or touch
+	pointY = 0, // vertical map position on mouse move or touch
+	start = { x: 0, y: 0, distance: 0}, // gets mouse or touch position on screen, distance between two simultanious touches for pinch zoom
+	fontSize = 2, // default room text size
+	offsetY = 0.5, // location pointer vertical offset
+	zoomParent = document.getElementById("mapHolder"),
+	rooms = document.getElementById("roomHolder"),
+	zoom = zoomParent.firstElementChild, // the image object
+	viewCampus = "Docklands", // campus currently in view
+	viewFloor = 0, // floor currently in view
+	roomTemplate = document.getElementById("roomObject"), // template for generating rooms on the map
+	pointFinder = document.getElementById("pointFinder"),
+	roomFinder = document.getElementById("roomFinder"),
+	roomContent = document.getElementById("room-content"),
+	placePointer = document.getElementById("placePointer"),
+	newPlacePointer = [false, 0, 0], // puts pointer in correct position on image change
+	selectedRoom = "", // room currently selected by user
+	debugMode = false, // shows options such as mouse position and database room codes
+	campusChanged = false;
+	
+	
+	// Shows back button if not kiosk mode and if screen size is wide enough
+	
+	if (window.location.href.indexOf("#kiosk") >= 0 || window.innerWidth < 620) {
+		document.getElementById("backbtn").style.display = "none";
+	}
+	
+	
+	// Sets the starting campus
+	
+	if (window.location.href.indexOf("#stratford") > 0) {
+		changeCampus("Stratford", 0);
+	}
+	else if (window.location.href.indexOf("#uss") > 0) {
+		changeCampus("USS", 0);
+	}
+	
+	
+	
+	zoom.src = "Finished/" + viewCampus + " F" + viewFloor + ".svg";
+	
+	var imageStyle = window.getComputedStyle(zoom), // style properties of the image
+	imageHeight = imageStyle.getPropertyValue("height"), // image height
+	imageWidth = imageStyle.getPropertyValue("width"); // image width
+	
+	
+	// Sets room holder object to same size as the image
+	
+	rooms.style.height = imageHeight;
+	rooms.style.width = imageWidth;
+	
+	
+	// Refreshes the page after 10 minutes of inactivity (no mouse movement or touch)
+	
+	var time = new Date().getTime();
+	
+	function refreshPage() {
+		if (new Date().getTime() - time >= 600000) {
+			window.location.reload();
+		}
+		else {
+			setTimeout(refreshPage, 10000);
+		}
+	}
+	
+	setTimeout(refreshPage, 10000);
+	
+	
+	// Moves the map
 
-				var i = 0;
-				var x = Math.max(scoredata.values[key].bm, scoredata.values[key].jh, scoredata.values[key].rh);
-				var wins = 0;
-				for (var newkey in scoredata.values[key]) {
-					if (scoredata.values[key][newkey] === x) {
-						wins++;
-					}
+	function setTransform() {
+		zoom.style.transform = "translate(" + pointX + "px, " + pointY + "px) scale(" + scale + ")";
+		rooms.style.transform = "translate(" + pointX + "px, " + pointY + "px) scale(" + scale + ")";
+	}
+	
+	
+	// -- Mouse events on the map -------
+
+	zoomParent.onmousedown = function (e) {
+		e.preventDefault();
+		
+		// --- Hides room finder drop down if open ---
+		document.getElementById("focusButton").focus();
+		document.activeElement.blur();
+		roomContent.style = "display:none;";
+		// --------
+		
+		start = { x: e.clientX - pointX, y: e.clientY - pointY };
+		panning = true;
+		zoomParent.style = "cursor:grabbing;";
+	}
+	
+	zoomParent.onmouseout = function (e) {
+		panning = false;
+		zoomParent.style = "cursor:grab;";
+	}
+
+	zoomParent.onmouseup = function (e) {
+		panning = false;
+		zoomParent.style = "cursor:grab;";
+	}
+
+
+	// Sets movement for map and shows pointer position in debug mode
+	
+	zoomParent.onmousemove = function (e) {
+		pointFinder.innerHTML = "x: " + ((e.clientX - rooms.getBoundingClientRect().left) / scale).toFixed(0) + "  y: " + ((e.clientY - rooms.getBoundingClientRect().top) / scale).toFixed(0);
+		pointFinder.style.transform = "translate(" + (e.clientX - 40) + "px, " + (e.clientY - 60) + "px)";
+		e.preventDefault();
+		time = new Date().getTime();
+		resetStyle();
+		if (!panning) {
+			return;
+		}
+		pointX = (e.clientX - start.x);
+		pointY = (e.clientY - start.y);
+		setTransform();
+	}
+
+
+	// Zooms into mouse position on scroll wheel
+
+	zoomParent.onwheel = function (e) {
+		e.preventDefault();
+		var xs = (e.clientX - pointX) / scale,
+			ys = (e.clientY - pointY) / scale,
+			delta = (e.wheelDelta ? e.wheelDelta : -e.deltaY);
+		
+		(delta > 0) ? (scale *= 1.2) : (scale /= 1.2);
+		
+		scale = Math.min(Math.max(scaleMin, scale), scaleMax).toFixed(1);
+		
+		
+		if (scale === (scaleMin || scaleMax)) {
+			return;
+		}
+		
+		pointX = e.clientX - xs * scale;
+		pointY = e.clientY - ys * scale;
+		setTransform();
+	}
+	
+	
+	// Hides drop downs when map selected
+	
+	function MapClicked() {
+		document.getElementById("focusButton").focus();
+		document.activeElement.blur();
+		roomContent.style = "display:none;";
+		document.getElementById("campus-content").style.display = "none";
+		document.getElementById("floor-content").style.display = "none";
+	}
+	
+	function resetStyle() {
+		document.getElementById("campus-content").style = "";
+		document.getElementById("floor-content").style = "";
+	}
+	
+	// -------------------------------
+	
+	
+	// -- Touch events on the map -------
+
+	zoomParent.addEventListener("touchstart", touchStart);
+	zoomParent.addEventListener("touchend", touchEnd);
+	zoomParent.addEventListener("touchmove", touchMove);
+	document.getElementById("dropdown").addEventListener("touchstart", (e) => {
+		if (e.touches.length === e.targetTouches.length) {
+			resetStyle();
+		}
+	});
+
+	function touchStart (e) {
+		e.preventDefault();
+		time = new Date().getTime();
+		document.getElementById("focusButton").focus();
+		document.activeElement.blur();
+		roomContent.style = "display:none;";
+		if (e.touches.length === 1) {
+			start = { x: e.touches[0].clientX - pointX, y: e.touches[0].clientY - pointY };
+		}
+		if (e.touches.length === 2) {
+			start.x = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+			start.y = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+			start.distance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+		}
+	}
+	
+	function touchEnd (e) {
+		if (e.touches.length === 1) {
+			start = { x: e.touches[0].clientX - pointX, y: e.touches[0].clientY - pointY };
+		}
+	}
+
+
+	// Sets movement and zoom for map
+	
+	function touchMove (e) {
+		e.preventDefault();
+		if (e.touches.length === 1) {
+			pointX = (e.touches[0].clientX - start.x);
+			pointY = (e.touches[0].clientY - start.y);
+		}
+		if (e.touches.length === 2) {
+			var xs = (((e.touches[0].clientX + e.touches[1].clientX) / 2) - pointX) / scale,
+				ys = (((e.touches[0].clientY + e.touches[1].clientY) / 2) - pointY) / scale;
+			const deltaDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+			if (deltaDistance > start.distance) {
+				scale *= 1.03;
+			}
+			if (deltaDistance < start.distance) {
+				scale /= 1.03;
+			}
+			start.distance = deltaDistance;
+			scale = Math.min(Math.max(scaleMin, scale), scaleMax);
+			pointX = ((e.touches[0].clientX + e.touches[1].clientX) / 2) - xs * scale;
+			pointY = ((e.touches[0].clientY + e.touches[1].clientY) / 2) - ys * scale;
+		}
+		setTransform();
+	}
+	
+	// -------------------------------
+	
+	// Changes the campus image, resets image position and resets floor to 0
+	
+	function changeCampus(campus, floor) {
+		viewCampus = campus;
+		
+		campusChanged = true;
+		
+		if (campus === "Stratford") {
+			document.getElementById("5th").style = "display: block";
+		}
+		else {
+			document.getElementById("5th").style = "display: none";
+		}
+		
+		// Will change the image
+		changeFloor(floor);
+	}
+	
+	
+	// Changes the image
+	
+	function changeFloor(floor) {
+		viewFloor = floor;
+		zoom.src = "Finished/" + viewCampus + " F" + floor + ".svg";
+		document.getElementById("selected-campus").innerHTML = (viewCampus + " - Floor " + floor).toUpperCase();
+		
+		var oldPointer = document.getElementById("placePointer");
+		if (oldPointer !== null) {
+			oldPointer.remove();
+		}
+	}
+	
+	
+	// Fixes view issues and repositions room and pointers correctly on campus change
+	
+	zoom.onload = function(e) {
+		if (campusChanged) {
+			pointX = 0;
+			pointY = 0;
+			
+			switch(viewCampus) {
+				case "Docklands":
+					scaleMax = 10;
+					scaleMin = 1;
+					fontSize = 2;
+					offsetY = 0.5;
+					break;
+				case "Stratford":
+					scaleMax = 5;
+					scaleMin = 0.9;
+					fontSize = 4;
+					offsetY = 2;
+					break;
+				case "USS":
+					scaleMax = 2;
+					scaleMin = 0.7;
+					fontSize = 12;
+					offsetY = 4;
+					break;
+				default:
+					scaleMax = 10;
+					scaleMin = 1;
+					fontSize = 2;
+					offsetY = 0.5;
+			}
+			
+			scale = scaleMin;
+			setTransform();
+			
+			campusChanged = false;
+		}
+		createRooms(viewCampus, viewFloor);
+		
+		if (newPlacePointer[0] === true) {
+			var newPointer = placePointer.cloneNode(true);
+			newPointer.style = "transform: translate(" + (newPlacePointer[1] - (2.5 * fontSize)) + "px, " + (newPlacePointer[2] - (3.5 * fontSize) - offsetY) + "px);"
+			+ "height:" + (5 * fontSize) + "px;";
+			roomHolder.appendChild(newPointer);
+			for (var i = 0; i < roomHolder.children.length; i++) {
+				if (roomHolder.children[i].innerHTML == selectedRoom) {
+					roomHolder.children[i].style.fontWeight = "900";
+					roomHolder.children[i].style.color = "#000000";
+					break;
 				}
-				if (wins === 1) {
-					for (var newkey in scoredata.values[key]) {
-						if (scoredata.values[key][newkey] === x) {
-							scorecount[1][i - 1]++;
-						}
-						i++;
-					}
+			}
+			scale = scaleMax / 2;
+			pointX = ((((mapHolder.getBoundingClientRect().right - mapHolder.getBoundingClientRect().left) / 2) / scale) - newPlacePointer[1]) * scale;
+			pointY = (((((mapHolder.getBoundingClientRect().bottom - mapHolder.getBoundingClientRect().top) / 2) / scale) - newPlacePointer[2]) * scale)
+			- document.getElementById("dropdown").getBoundingClientRect().bottom;
+			
+			setTransform();
+			
+			newPlacePointer = [false, 0, 0];
+		}
+	}
+	
+	
+	// Sets room locations on initial load
+	
+	createRooms(viewCampus, viewFloor);
+	
+	
+	// Finds all rooms in room.json and sorts into alphabetical order for room finder dropdown
+	
+	var allRooms = [];
+	
+	for (var campus in roomData) {
+		for (var i = 0; i < roomData[campus].length; i++) {
+			if (roomData[campus][i].find === true) {
+				allRooms.push([roomData[campus][i].name, roomData[campus][i].posx, roomData[campus][i].posy, roomData[campus][i].code.charAt(2), campus]);
+			}
+		}
+	}
+	
+	allRooms.sort(compare);
+	function compare(a, b) {
+		a[0] = a[0].replace(".G.", ".0.");
+		b[0] = b[0].replace(".G.", ".0.");
+		if (a[0] < b[0]) {
+			return -1;
+		}
+		if (a[0] > b[0]) {
+			return 1;
+		}
+		return 0;
+	}
+	for (var i = 0; i < allRooms.length; i++) {
+		allRooms[i][0] = allRooms[i][0].replace(".0.", ".G.");
+	}
+	
+	
+	// Deletes all room objects and recreates for correct campus and floor
+	
+	function createRooms(campus, floor) {
+		rooms.innerHTML = "";
+		for (var i = 0; i < roomData[campus].length; i++) {
+			if (roomData[campus][i].code.charAt(2) > floor)
+			{
+				break;
+			}
+			if (roomData[campus][i].code.charAt(2) == floor) {
+				var newRoom = roomTemplate.cloneNode(true);
+				
+				roomHolder.appendChild(newRoom);
+				
+				var setPosX = fontSize * 5;
+				var setPosY = setPosX;
+				if (roomData[campus][i].rot !== 0) {
+					setPosX = (fontSize * roomData[campus][i].size) * 5;
+				}
+				else {
+					setPosY = (fontSize * roomData[campus][i].size) * 5;
+				}
+				
+				var posX = roomData[campus][i].posx - setPosX,
+				posY = roomData[campus][i].posy - setPosY;
+				
+				newRoom.style = "display:block; transform:translate(" + posX + "px," + posY + "px) rotate(" 
+				+ roomData[campus][i].rot + "deg); transform-origin:" + (fontSize * 5) + "px " + (fontSize * 5) 
+				+ "px; font-weight:400;" + "font-size:" + (fontSize * roomData[campus][i].size) + "px;" + "height:" 
+				+ ((fontSize * roomData[campus][i].size) * 10) + "px; width:" + (fontSize * 10) + "px; line-height:" 
+				+ ((fontSize * roomData[campus][i].size)* 10) + "px;";
+				
+				newRoom.id = roomData[campus][i].code + " " + roomData[campus][i].name;
+				if (debugMode) {
+					newRoom.innerHTML = roomData[campus][i].code;
+				}
+				else {
+					newRoom.innerHTML = roomData[campus][i].name;
 				}
 			}
 		}
-		document.getElementById("wins1").innerHTML = scorecount[1][0] + ' Wins';
-		document.getElementById("wins2").innerHTML = scorecount[1][1] + ' Wins';
-		document.getElementById("wins3").innerHTML = scorecount[1][2] + ' Wins';
-		document.getElementById("cups1").innerHTML = scorecount[0][0] + ' Cups';
-		document.getElementById("cups2").innerHTML = scorecount[0][1] + ' Cups';
-		document.getElementById("cups3").innerHTML = scorecount[0][2] + ' Cups';
-		document.getElementById("totalscore").innerHTML = "Total games: " + scoredata.values.length;
-
-
-		function detailmenu(option) {
-
-			var table = document.getElementById("menu");
-			var rows = [];
-
-			if(option === "close") {
-				for (var row = 0; row < scoredata.values.length; row++) {
-					table.deleteRow(1);
+		
+	}
+	
+	
+	// Deletes all room dropdowns and recreates based on characters typed
+	
+	roomFinder.oninput = function (e) {
+		roomContent.innerHTML = "";
+		if (roomFinder.value !== "") {
+			for (var i = 0; i < allRooms.length; i++) {
+				if (allRooms[i][0].toUpperCase().includes(roomFinder.value.toUpperCase())) {
+					var newLink = document.createElement("a");
+					newLink.setAttribute("onclick", "findRoom(" + allRooms[i][1] + ", " + allRooms[i][2]+ ", '" + allRooms[i][4] + "', " + allRooms[i][3] + ', "' + allRooms[i][0] + '")');
+					newLink.innerHTML = allRooms[i][0] + " - " + allRooms[i][4];
+					roomContent.appendChild(newLink);
 				}
-				document.getElementById("main-buttons").style.display = "block";
-				document.getElementById("openmenu").style.display = "none";
+			}
+		}
+		if (roomContent.children.length > 0) {
+			roomContent.style = "display:block;";
+		}
+		else {
+			roomContent.style = "display:none";
+		}
+	}
+	
+	
+	// Shows the room selection drop down if selected
+	
+	roomFinder.onfocus = function (e) {
+		if (roomContent.children.length > 0) {
+			roomContent.style = "display:block;";
+		}
+	}
+	
+	
+	// Zooms into selected room, changing campus and floor if needed
+	
+	function findRoom(x, y, campus, floor, name) {
+		var oldPointer = document.getElementById("placePointer");
+		if (oldPointer !== null) {
+			oldPointer.remove();
+		}
+		if (viewCampus !== campus || viewFloor !== floor) {
+			newPlacePointer = [true, x, y];
+			selectedRoom = name;
+			viewFloor = floor;
+			changeCampus(campus, floor);
+		}
+		else {
+			var newPointer = placePointer.cloneNode(true);
+			newPointer.style = "transform: translate(" + (x - (2.5 * fontSize)) + "px, " + (y - (3.5 * fontSize) - offsetY) + "px);" + "height:" + (5 * fontSize) + "px;";
+			roomHolder.appendChild(newPointer);
+			scale = scaleMax / 2;
+			pointX = ((((mapHolder.getBoundingClientRect().right - mapHolder.getBoundingClientRect().left) / 2) / scale) - x) * scale;
+			pointY = (((((mapHolder.getBoundingClientRect().bottom - mapHolder.getBoundingClientRect().top) / 2) / scale) - y) * scale)
+			- document.getElementById("dropdown").getBoundingClientRect().bottom;
+			setTransform();
+		}
+		
+		
+		roomContent.style = "display:none";
+		for (var i = 0; i < roomHolder.children.length; i++) {
+			if (roomHolder.children[i].innerHTML == name) {
+				roomHolder.children[i].style.fontWeight = "900";
+				roomHolder.children[i].style.color = "#000000";
 			}
 			else {
-				document.getElementById("main-buttons").style.display = "none";
-				document.getElementById("openmenu").style.display = "block";
-				for (var key in scoredata.values) {
-					var newrow = table.insertRow(table.rows.length);
-					rows.push([]);
-					rows[key][0] = newrow.insertCell(0);
-					rows[key][1] = newrow.insertCell(1);
-					rows[key][2] = newrow.insertCell(2);
-				}
-
-				for (var i = 0; i < rows.length; i++) {
-					rows[i][0].innerHTML = scoredata.values[i].date;
-					rows[i][1].innerHTML = scoredata.values[i][option];
-					if (Math.max(scoredata.values[i].bm, scoredata.values[i].jh, scoredata.values[i].rh) === scoredata.values[i][option]) {
-						var wins = 0;
-						for (var newkey in scoredata.values[i]) {
-							if (scoredata.values[i][newkey] === scoredata.values[i][option]) {
-								wins++;
-							}
-						}
-						if (wins === 1) {
-							rows[i][2].innerHTML = "Won";
-						}
-						else {
-							rows[i][2].innerHTML = "Tied";
-						}
-					}
-					else {
-						rows[i][2].innerHTML = "Lost";
-					}
-				}
+				roomHolder.children[i].style.fontWeight = "400";
+				roomHolder.children[i].style.color = "#505050";
 			}
 		}
-		</script>
-	</body>
+	}
+
+
+	// Debug mode
+	
+	pointFinder = document.getElementById("pointFinder");
+	document.addEventListener("keydown", debug);
+	
+	
+	// Shows pointer position and changes room number to database code
+	
+	function debug(e) {
+		if (e.code == "F4") {
+			debugMode = !debugMode;
+			
+			if (debugMode) {
+				pointFinder.style.display = "block";
+				for (var i = 0; i < roomHolder.children.length; i++) {
+					roomHolder.children[i].innerHTML = roomHolder.children[i].id.substring(0, 6);
+				}
+			}
+			else {
+				pointFinder.style.display = "none";
+				for (var i = 0; i < roomHolder.children.length; i++) {
+					roomHolder.children[i].innerHTML = roomHolder.children[i].id.substring(7);
+				}
+			}
+			<!-- var newText = ""; -->
+			<!-- for (var i = 0; i < roomData[viewCampus].length; i++) { -->
+				<!-- newText += '{"code":"' + roomData[viewCampus][i].code + '", "name":"' + roomData[viewCampus][i].name +  -->
+				<!-- '", "posx":' + (roomData[viewCampus][i].posx + 1) + ', "posy":' + roomData[viewCampus][i].posy +  -->
+				<!-- ', "rot":' + roomData[viewCampus][i].rot + ', "find":' + roomData[viewCampus][i].find +  -->
+				<!-- ', "size":' + roomData[viewCampus][i].size + '},\n'; -->
+			<!-- } -->
+			<!-- console.log(newText); -->
+		}
+	}
+</script>
 </html>
